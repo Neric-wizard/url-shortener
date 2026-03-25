@@ -16,9 +16,19 @@ export default function CreateLink() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [clicks, setClicks] = useState<number | null>(null);
 
   const generateShortCode = () => {
     return Math.random().toString(36).substring(2, 8);
+  };
+
+  const fetchClicks = async (shortCode: string) => {
+    const { data } = await supabase
+      .from("links")
+      .select("clicks")
+      .eq("short_code", shortCode)
+      .single();
+    if (data) setClicks(data.clicks);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,6 +36,7 @@ export default function CreateLink() {
     setLoading(true);
     setError("");
     setShortUrl("");
+    setClicks(null);
 
     const shortCode = generateShortCode();
 
@@ -36,7 +47,9 @@ export default function CreateLink() {
     if (dbError) {
       setError(dbError.message);
     } else {
-      setShortUrl(`${window.location.origin}/${shortCode}`);
+      const newShortUrl = `${window.location.origin}/${shortCode}`;
+      setShortUrl(newShortUrl);
+      await fetchClicks(shortCode);
       setUrl("");
     }
     setLoading(false);
@@ -142,6 +155,12 @@ export default function CreateLink() {
                 {copied ? <Check size={18} className="text-green-500" /> : <Copy size={18} className="text-purple-600" />}
               </button>
             </div>
+            
+            {clicks !== null && (
+              <div className="mt-3 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                👁️ {clicks} click{clicks !== 1 ? 's' : ''}
+              </div>
+            )}
           </motion.div>
         )}
       </div>
