@@ -25,16 +25,18 @@ export default async function RedirectPage({
 
   let longUrl = data.long_url;
   
+  // If the URL is empty or points to itself, go to homepage
+  if (!longUrl || 
+      longUrl.includes("url-shortener-six-sepia.vercel.app") || 
+      longUrl.includes("localhost:3000") ||
+      longUrl === params.shortCode) {
+    redirect("/");
+    return null;
+  }
+
   // Add https:// if missing
   if (!longUrl.startsWith("http://") && !longUrl.startsWith("https://")) {
     longUrl = "https://" + longUrl;
-  }
-
-  // Prevent redirect loop - don't redirect to itself
-  if (longUrl.includes("url-shortener-six-sepia.vercel.app") || 
-      longUrl.includes("localhost")) {
-    redirect("/");
-    return null;
   }
 
   redirect(longUrl);
