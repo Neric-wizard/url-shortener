@@ -2,42 +2,27 @@ import { createClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  "https://nfoerfezojunroqggysf.supabase.co",
+  "sb_publishable_4nRrXieWO_xGcr8jHzlmRQ_nI1uFXA7"
 );
 
 export default async function RedirectPage({
   params,
 }: {
-  params: { shortCode: string };
+  params: Promise<{ shortCode: string }>;
 }) {
+  const { shortCode } = await params;
+
   const { data, error } = await supabase
     .from("links")
     .select("long_url")
-    .eq("short_code", params.shortCode)
+    .eq("short_code", shortCode)
     .single();
 
-  // If no link found, go to homepage
   if (error || !data?.long_url) {
     redirect("/");
-    return null;
+    return;
   }
 
-  let longUrl = data.long_url;
-  
-  // If the URL is empty or points to itself, go to homepage
-  if (!longUrl || 
-      longUrl.includes("url-shortener-six-sepia.vercel.app") || 
-      longUrl.includes("localhost:3000") ||
-      longUrl === params.shortCode) {
-    redirect("/");
-    return null;
-  }
-
-  // Add https:// if missing
-  if (!longUrl.startsWith("http://") && !longUrl.startsWith("https://")) {
-    longUrl = "https://" + longUrl;
-  }
-
-  redirect(longUrl);
+  redirect(data.long_url);
 }
