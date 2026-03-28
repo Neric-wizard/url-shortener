@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, Copy, Check, ArrowRight, Sparkles, Eye } from "lucide-react";
+import { Link, Copy, Check, ArrowRight, Sparkles, Eye, LayoutDashboard } from "lucide-react";
 
 const supabase = createClient(
   "https://nfoerfezojunroqggysf.supabase.co",
@@ -83,6 +83,17 @@ export default function CreateLink() {
         <p className="text-lg text-gray-400 max-w-xl mx-auto">
           Create short, memorable links that are easy to share and track.
         </p>
+        
+        {/* Dashboard Link */}
+        <div className="mt-4">
+          <a
+            href="/dashboard"
+            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-purple-400 transition"
+          >
+            <LayoutDashboard size={14} />
+            View all your links →
+          </a>
+        </div>
       </motion.div>
 
       {/* Form Card */}
@@ -134,7 +145,7 @@ export default function CreateLink() {
         </form>
       </motion.div>
 
-      {/* Result with Click Counter Animation */}
+      {/* Result with Click Counter */}
       <AnimatePresence>
         {shortUrl && (
           <motion.div
@@ -168,7 +179,6 @@ export default function CreateLink() {
               </button>
             </div>
             
-            {/* Live Click Counter */}
             {clicks !== null && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
