@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, Copy, Check, ArrowRight, Sparkles, Eye, LayoutDashboard } from "lucide-react";
+import { Link, Copy, Check, ArrowRight, Sparkles, Eye, LayoutDashboard, Edit2 } from "lucide-react";
 
 const supabase = createClient(
   "https://nfoerfezojunroqggysf.supabase.co",
@@ -12,12 +12,13 @@ const supabase = createClient(
 
 export default function CreateLink() {
   const [url, setUrl] = useState("");
+  const [customCode, setCustomCode] = useState("");
   const [shortUrl, setShortUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [clicks, setClicks] = useState<number | null>(null);
-  const [shortCode, setShortCode] = useState("");
+  const [showCustom, setShowCustom] = useState(false);
 
   const generateShortCode = () => {
     return Math.random().toString(36).substring(2, 8);
@@ -39,20 +40,38 @@ export default function CreateLink() {
     setShortUrl("");
     setClicks(null);
 
-    const code = generateShortCode();
+    let shortCode = customCode.trim();
+    
+    if (!shortCode) {
+      shortCode = generateShortCode();
+    } else {
+      // Check if custom code already exists
+      const { data: existing } = await supabase
+        .from("links")
+        .select("short_code")
+        .eq("short_code", shortCode)
+        .single();
+      
+      if (existing) {
+        setError("This custom alias is already taken. Please choose another.");
+        setLoading(false);
+        return;
+      }
+    }
 
     const { error: dbError } = await supabase
       .from("links")
-      .insert([{ short_code: code, long_url: url }]);
+      .insert([{ short_code: shortCode, long_url: url }]);
 
     if (dbError) {
       setError(dbError.message);
     } else {
-      const newShortUrl = `${window.location.origin}/${code}`;
+      const newShortUrl = `${window.location.origin}/${shortCode}`;
       setShortUrl(newShortUrl);
-      setShortCode(code);
-      await fetchClicks(code);
+      await fetchClicks(shortCode);
       setUrl("");
+      setCustomCode("");
+      setShowCustom(false);
     }
     setLoading(false);
   };
@@ -66,7 +85,6 @@ export default function CreateLink() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-20">
       
-      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -84,7 +102,6 @@ export default function CreateLink() {
           Create short, memorable links that are easy to share and track.
         </p>
         
-        {/* Dashboard Link */}
         <div className="mt-4">
           <a
             href="/dashboard"
@@ -96,7 +113,6 @@ export default function CreateLink() {
         </div>
       </motion.div>
 
-      {/* Form Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -120,6 +136,46 @@ export default function CreateLink() {
               />
             </div>
           </div>
+          
+          {/* Custom Alias Toggle */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowCustom(!showCustom)}
+              className="flex items-center gap-2 text-sm text-gray-400 hover:text-purple-400 transition"
+            >
+              <Edit2 size={14} />
+              {showCustom ? "Hide custom alias" : "Use custom alias (optional)"}
+            </button>
+          </div>
+
+          {/* Custom Alias Input */}
+          <AnimatePresence>
+            {showCustom && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                    {window.location.origin}/
+                  </span>
+                  <input
+                    type="text"
+                    value={customCode}
+                    onChange={(e) => setCustomCode(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}
+                    placeholder="custom-alias"
+                    className="w-full pl-[calc(4rem+100px)] pr-4 py-4 bg-gray-800 border border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition text-white placeholder-gray-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Letters and numbers only, no spaces or special characters
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
           
           <button
             type="submit"
@@ -145,7 +201,6 @@ export default function CreateLink() {
         </form>
       </motion.div>
 
-      {/* Result with Click Counter */}
       <AnimatePresence>
         {shortUrl && (
           <motion.div
@@ -180,12 +235,7 @@ export default function CreateLink() {
             </div>
             
             {clicks !== null && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2, type: "spring" }}
-                className="mt-4 pt-4 border-t border-purple-500/20 flex items-center gap-2 text-sm"
-              >
+              <div className="mt-4 pt-4 border-t border-purple-500/20 flex items-center gap-2 text-sm">
                 <div className="flex items-center gap-1 px-3 py-1.5 bg-purple-500/10 rounded-full">
                   <Eye size={14} className="text-purple-400" />
                   <span className="text-purple-300 font-medium">
@@ -194,7 +244,7 @@ export default function CreateLink() {
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse ml-1" />
                   <span className="text-xs text-gray-500">live</span>
                 </div>
-              </motion.div>
+              </div>
             )}
           </motion.div>
         )}
