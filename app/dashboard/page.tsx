@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { motion } from "framer-motion";
-import { Link, Copy, Check, Eye, Trash2, QrCode, ExternalLink, FileText } from "lucide-react";
-
+import { Link, Copy, Eye, Trash2, QrCode, ExternalLink, TrendingUp, Check } from "lucide-react";
+import LinkAnalytics from "../components/LinkAnalytics";
 const supabase = createClient(
   "https://nfoerfezojunroqggysf.supabase.co",
   "sb_publishable_4nRrXieWO_xGcr8jHzlmRQ_nI1uFXA7"
@@ -14,7 +13,7 @@ export default function Dashboard() {
   const [links, setLinks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState<string | null>(null);
-  const [copiedMarkdown, setCopiedMarkdown] = useState<string | null>(null);
+  const [selectedLink, setSelectedLink] = useState<string | null>(null);
 
   useEffect(() => {
     fetchLinks();
@@ -43,13 +42,6 @@ export default function Dashboard() {
     setTimeout(() => setCopied(null), 2000);
   };
 
-  const copyAsMarkdown = (url: string, id: string) => {
-    const markdown = `[${url}](${url})`;
-    navigator.clipboard.writeText(markdown);
-    setCopiedMarkdown(id);
-    setTimeout(() => setCopiedMarkdown(null), 2000);
-  };
-
   return (
     <div className="max-w-6xl mx-auto px-6 py-20">
       <div className="text-center mb-12">
@@ -74,11 +66,8 @@ export default function Dashboard() {
       ) : (
         <div className="space-y-4">
           {links.map((link, index) => (
-            <motion.div
+            <div
               key={link.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
               className="bg-gray-900/80 backdrop-blur-sm rounded-2xl border border-gray-800 p-5 hover:border-purple-500/30 transition"
             >
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -102,17 +91,6 @@ export default function Dashboard() {
                       <Copy size={18} className="text-gray-400" />
                     )}
                   </button>
-                  <button
-                    onClick={() => copyAsMarkdown(`${window.location.origin}/${link.short_code}`, String(link.id))}
-                    className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition"
-                    title="Copy as Markdown"
-                  >
-                    {copiedMarkdown === String(link.id) ? (
-                      <Check size={18} className="text-green-400" />
-                    ) : (
-                      <FileText size={18} className="text-gray-400" />
-                    )}
-                  </button>
                   <a
                     href={`/${link.short_code}`}
                     target="_blank"
@@ -129,6 +107,13 @@ export default function Dashboard() {
                   >
                     <QrCode size={18} className="text-gray-400" />
                   </a>
+                  <button
+                    onClick={() => setSelectedLink(link.short_code)}
+                    className="p-2 bg-gray-800 rounded-lg hover:bg-purple-500/20 transition"
+                    title="View Analytics"
+                  >
+                    <TrendingUp size={18} className="text-purple-400" />
+                  </button>
                   <div className="flex items-center gap-1 px-3 py-2 bg-gray-800 rounded-lg">
                     <Eye size={14} className="text-gray-500" />
                     <span className="text-sm text-gray-400">{link.clicks || 0}</span>
@@ -142,9 +127,16 @@ export default function Dashboard() {
                   </button>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
+      )}
+
+      {selectedLink && (
+        <LinkAnalytics
+          shortCode={selectedLink}
+          onClose={() => setSelectedLink(null)}
+        />
       )}
     </div>
   );
