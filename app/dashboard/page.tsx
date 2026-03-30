@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { motion } from "framer-motion";
-import { Link, Copy, Check, Eye, Trash2, QrCode, ExternalLink } from "lucide-react";
+import { Link, Copy, Check, Eye, Trash2, QrCode, ExternalLink, FileText } from "lucide-react";
 
 const supabase = createClient(
   "https://nfoerfezojunroqggysf.supabase.co",
@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [links, setLinks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState<string | null>(null);
+  const [copiedMarkdown, setCopiedMarkdown] = useState<string | null>(null);
 
   useEffect(() => {
     fetchLinks();
@@ -40,6 +41,13 @@ export default function Dashboard() {
     navigator.clipboard.writeText(url);
     setCopied(id);
     setTimeout(() => setCopied(null), 2000);
+  };
+
+  const copyAsMarkdown = (url: string, id: string) => {
+    const markdown = `[${url}](${url})`;
+    navigator.clipboard.writeText(markdown);
+    setCopiedMarkdown(id);
+    setTimeout(() => setCopiedMarkdown(null), 2000);
   };
 
   return (
@@ -82,10 +90,11 @@ export default function Dashboard() {
                     {link.long_url}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <button
                     onClick={() => copyToClipboard(`${window.location.origin}/${link.short_code}`, String(link.id))}
                     className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition"
+                    title="Copy URL"
                   >
                     {copied === String(link.id) ? (
                       <Check size={18} className="text-green-400" />
@@ -93,17 +102,30 @@ export default function Dashboard() {
                       <Copy size={18} className="text-gray-400" />
                     )}
                   </button>
+                  <button
+                    onClick={() => copyAsMarkdown(`${window.location.origin}/${link.short_code}`, String(link.id))}
+                    className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition"
+                    title="Copy as Markdown"
+                  >
+                    {copiedMarkdown === String(link.id) ? (
+                      <Check size={18} className="text-green-400" />
+                    ) : (
+                      <FileText size={18} className="text-gray-400" />
+                    )}
+                  </button>
                   <a
                     href={`/${link.short_code}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition"
+                    title="Open Link"
                   >
                     <ExternalLink size={18} className="text-gray-400" />
                   </a>
                   <a
                     href={`/qr/${link.short_code}`}
                     className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition"
+                    title="QR Code"
                   >
                     <QrCode size={18} className="text-gray-400" />
                   </a>
@@ -114,6 +136,7 @@ export default function Dashboard() {
                   <button
                     onClick={() => deleteLink(link.id)}
                     className="p-2 bg-gray-800 rounded-lg hover:bg-red-500/20 transition"
+                    title="Delete"
                   >
                     <Trash2 size={18} className="text-red-400" />
                   </button>
