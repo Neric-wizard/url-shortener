@@ -15,14 +15,23 @@ export default async function RedirectPage({
 
   const { data, error } = await supabase
     .from("links")
-    .select("long_url")
+    .select("*")
     .eq("short_code", shortCode)
     .single();
 
-  if (error || !data?.long_url) {
+  if (error || !data) {
     redirect("/");
     return;
   }
+
+  // Check if link has expired
+  if (data.expires_at && new Date(data.expires_at) < new Date()) {
+    redirect("/expired");
+    return;
+  }
+
+  // Increment click count
+  await supabase.rpc("increment", { row_id: data.id });
 
   redirect(data.long_url);
 }

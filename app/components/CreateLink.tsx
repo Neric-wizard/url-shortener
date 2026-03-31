@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, Copy, Check, ArrowRight, Sparkles, Eye, LayoutDashboard, Edit2 } from "lucide-react";
+import { Link, Copy, Check, ArrowRight, Sparkles, Eye, LayoutDashboard, Edit2, Calendar } from "lucide-react";
 
 const supabase = createClient(
   "https://nfoerfezojunroqggysf.supabase.co",
@@ -19,6 +19,8 @@ export default function CreateLink() {
   const [copied, setCopied] = useState(false);
   const [clicks, setClicks] = useState<number | null>(null);
   const [showCustom, setShowCustom] = useState(false);
+  const [showExpiry, setShowExpiry] = useState(false);
+  const [expiresAt, setExpiresAt] = useState("");
 
   const generateShortCode = () => {
     return Math.random().toString(36).substring(2, 8);
@@ -45,7 +47,6 @@ export default function CreateLink() {
     if (!shortCode) {
       shortCode = generateShortCode();
     } else {
-      // Check if custom code already exists
       const { data: existing } = await supabase
         .from("links")
         .select("short_code")
@@ -59,9 +60,15 @@ export default function CreateLink() {
       }
     }
 
+    const insertData: any = { short_code: shortCode, long_url: url };
+    
+    if (expiresAt) {
+      insertData.expires_at = new Date(expiresAt).toISOString();
+    }
+
     const { error: dbError } = await supabase
       .from("links")
-      .insert([{ short_code: shortCode, long_url: url }]);
+      .insert(insertData);
 
     if (dbError) {
       setError(dbError.message);
@@ -72,6 +79,8 @@ export default function CreateLink() {
       setUrl("");
       setCustomCode("");
       setShowCustom(false);
+      setExpiresAt("");
+      setShowExpiry(false);
     }
     setLoading(false);
   };
@@ -137,7 +146,7 @@ export default function CreateLink() {
             </div>
           </div>
           
-          {/* Custom Alias Toggle Button */}
+          {/* Custom Alias Toggle */}
           <button
             type="button"
             onClick={() => setShowCustom(!showCustom)}
@@ -167,6 +176,34 @@ export default function CreateLink() {
               </div>
               <p className="text-xs text-gray-500 mt-1">
                 Letters and numbers only, no spaces or special characters
+              </p>
+            </div>
+          )}
+
+          {/* Expiration Toggle */}
+          <button
+            type="button"
+            onClick={() => setShowExpiry(!showExpiry)}
+            className="flex items-center gap-2 text-sm text-gray-400 hover:text-purple-400 transition"
+          >
+            <Calendar size={14} />
+            {showExpiry ? "Hide expiration" : "Set expiration date (optional)"}
+          </button>
+
+          {/* Expiration Date Picker */}
+          {showExpiry && (
+            <div className="mt-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Link expires on
+              </label>
+              <input
+                type="datetime-local"
+                value={expiresAt}
+                onChange={(e) => setExpiresAt(e.target.value)}
+                className="w-full px-4 py-4 bg-gray-800 border border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition text-white"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                After this date, the link will no longer work
               </p>
             </div>
           )}
