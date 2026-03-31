@@ -137,38 +137,39 @@ export default function CreateLink() {
             </div>
           </div>
           
-   {/* Custom Alias Input */}
-<AnimatePresence>
-  {showCustom && (
-    <motion.div
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "auto" }}
-      exit={{ opacity: 0, height: 0 }}
-      className="overflow-hidden"
-    >
-      <div className="mt-2">
-        <label className="block text-sm font-medium text-gray-300 mb-2">
-          Custom alias (optional)
-        </label>
-        <div className="flex items-stretch">
-          <div className="flex items-center px-4 bg-gray-800 border border-r-0 border-gray-700 rounded-l-xl text-gray-400 text-sm whitespace-nowrap">
-            {window.location.origin}/
-          </div>
-          <input
-            type="text"
-            value={customCode}
-            onChange={(e) => setCustomCode(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}
-            placeholder="custom-alias"
-            className="flex-1 px-4 py-4 bg-gray-800 border border-gray-700 rounded-r-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition text-white placeholder-gray-500"
-          />
-        </div>
-        <p className="text-xs text-gray-500 mt-1">
-          Letters and numbers only, no spaces or special characters
-        </p>
-      </div>
-    </motion.div>
-  )}
-</AnimatePresence>
+          {/* Custom Alias Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setShowCustom(!showCustom)}
+            className="flex items-center gap-2 text-sm text-gray-400 hover:text-purple-400 transition"
+          >
+            <Edit2 size={14} />
+            {showCustom ? "Hide custom alias" : "Use custom alias (optional)"}
+          </button>
+
+          {/* Custom Alias Input */}
+          {showCustom && (
+            <div className="mt-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Custom alias
+              </label>
+              <div className="flex items-stretch">
+                <div className="flex items-center px-4 bg-gray-800 border border-r-0 border-gray-700 rounded-l-xl text-gray-400 text-sm whitespace-nowrap">
+                  {window.location.origin}/
+                </div>
+                <input
+                  type="text"
+                  value={customCode}
+                  onChange={(e) => setCustomCode(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}
+                  placeholder="my-custom-link"
+                  className="flex-1 px-4 py-4 bg-gray-800 border border-gray-700 rounded-r-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition text-white placeholder-gray-500"
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Letters and numbers only, no spaces or special characters
+              </p>
+            </div>
+          )}
           
           <button
             type="submit"
