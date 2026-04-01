@@ -24,9 +24,15 @@ export default async function RedirectPage({
     return;
   }
 
-  // Check if link has expired
+  // Check expiration
   if (data.expires_at && new Date(data.expires_at) < new Date()) {
     redirect("/expired");
+    return;
+  }
+
+  // Check if password protected
+  if (data.password) {
+    redirect(`/${shortCode}/password`);
     return;
   }
 
