@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { Link, Copy, Eye, Trash2, QrCode, ExternalLink, TrendingUp, Check } from "lucide-react";
+import { Link, Copy, Check, Eye, Trash2, QrCode, ExternalLink, TrendingUp, Eye as PreviewIcon } from "lucide-react";
 import LinkAnalytics from "../components/LinkAnalytics";
+
 const supabase = createClient(
   "https://nfoerfezojunroqggysf.supabase.co",
   "sb_publishable_4nRrXieWO_xGcr8jHzlmRQ_nI1uFXA7"
@@ -99,6 +100,14 @@ export default function Dashboard() {
                     title="Open Link"
                   >
                     <ExternalLink size={18} className="text-gray-400" />
+                  </a>
+                  <a
+                    href={`/preview/${link.short_code}`}
+                    target="_blank"
+                    className="p-2 bg-gray-800 rounded-lg hover:bg-purple-500/20 transition"
+                    title="Preview Card"
+                  >
+                    <PreviewIcon size={18} className="text-gray-400" />
                   </a>
                   <a
                     href={`/qr/${link.short_code}`}
